@@ -1,0 +1,24 @@
+# Symfony
+/bin/
+/public/check.php
+/.env.dist
+
+# IDE files
+/.idea
+
+# Composer
+# Commit your application's lock file https://getcomposer.org/doc/01-basic-usage.md#commit-your-composer-lock-file-to-version-control
+# You may choose to ignore a library lock file http://getcomposer.org/doc/02-libraries.md#lock-file
+# composer.lock
+composer.phar
+/vendor/
+
+###> symfony/framework-bundle ###
+/.env
+/public/bundles/
+/var/
+###< symfony/framework-bundle ###
+
+###> symfony/web-server-bundle ###
+/.web-server-pid
+###< symfony/web-server-bundle ###
