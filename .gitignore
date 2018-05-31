@@ -1,5 +1,7 @@
-# SQLite DB
-*.sqlite
+# Symfony
+/bin/
+/public/check.php
+/.env.dist
 
 # IDE files
 /.idea
@@ -10,3 +12,16 @@
 # composer.lock
 composer.phar
 /vendor/
+<<<<<<< HEAD
+=======
+
+###> symfony/framework-bundle ###
+/.env
+/public/bundles/
+/var/
+###< symfony/framework-bundle ###
+
+###> symfony/web-server-bundle ###
+/.web-server-pid
+###< symfony/web-server-bundle ###
+>>>>>>> master
