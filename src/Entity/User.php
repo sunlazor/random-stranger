@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\UserRepository")
@@ -17,6 +18,15 @@ class User
     private $id;
 
     /**
+     * @Assert\NotNull()
+     * @Assert\NotBlank()
+     * @Assert\Length(
+     *     min = 4,
+     *     max = 60
+     * )
+     * @Assert\Regex("/^[a-z0-9]+[a-z0-9_-]*$/iU")
+     * Проверка: https://regex101.com/r/BVXYe6/2
+     *
      * @ORM\Column(type="string", length=64)
      */
     private $login;
@@ -30,6 +40,11 @@ class User
      * @ORM\Column(type="integer")
      */
     private $chatWas;
+
+    public function __construct()
+    {
+        $this->chatWas = 0;
+    }
 
     public function expose() :array
     {
