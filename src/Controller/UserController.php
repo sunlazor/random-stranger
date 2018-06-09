@@ -10,6 +10,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use App\Entity\User;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
+use App\Utils;
 
 class UserController extends Controller
 {
@@ -39,7 +40,7 @@ class UserController extends Controller
     public function addUser(Request $request, ValidatorInterface $validator): Response
     {
         // Чтение JSON из запроса
-        $json = json_decode($request->getContent(), true);
+        $json = Utils::getRequestJSONArray($request);
         // Создание и заполнение данными нового пользователя
         $login = htmlspecialchars($json['login']);
         $user = new User();
@@ -63,5 +64,27 @@ class UserController extends Controller
         }
 
         return $response;
+    }
+
+    /**
+     * Проверка наличия данного пользователя в БД
+     * Проверка идет только по login и id (если есть)
+     *
+     * @param User $user Объект с пользователем для проверки
+     * @return bool Возвращает true если пользователь найден. false если нет или дан пустой объект
+     */
+    public function isUserExists(User $user): bool
+    {
+        if (null === $user) {
+            return false;
+        }
+        $findArgs = [];
+        if (null !== $user->getId()) {
+            $findArgs['id'] = $user->getId();
+        }
+        $findArgs['login'] = $user->getLogin();
+        $found = $this->getDoctrine()
+            ->getRepository(User::class)->findOneBy($findArgs);
+        return !($found === null);
     }
 }

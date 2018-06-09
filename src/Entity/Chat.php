@@ -22,6 +22,11 @@ class Chat
      */
     private $code;
 
+    public function __construct()
+    {
+        $this->code = Utils::generateRandomString();
+    }
+
     public function getId()
     {
         return $this->id;
@@ -32,9 +37,9 @@ class Chat
         return $this->code;
     }
 
-    public function setCode(string $code = null): self
+    private function setCode(string $code): self
     {
-        $this->code = Utils::generateRandomString();
+        $this->code = $code;
 
         return $this;
     }
