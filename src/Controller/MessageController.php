@@ -5,21 +5,24 @@ namespace App\Controller;
 use App\Entity\Chat;
 use App\Entity\Message;
 use App\Entity\User;
+use App\Utils;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 
 class MessageController extends Controller
 {
-    /**
-     * @Route("/message", name="message")
-     */
-    public function index()
-    {
-        return $this->render('message/index.html.twig', [
-            'controller_name' => 'MessageController',
-        ]);
-    }
+//    /**
+//     * @Route("/message", name="message")
+//     */
+//    public function index()
+//    {
+//        return $this->render('message/index.html.twig', [
+//            'controller_name' => 'MessageController',
+//        ]);
+//    }
 
     /**
      * @Route(
@@ -31,19 +34,21 @@ class MessageController extends Controller
      *
      * @throws \Exception
      */
-    public function createChat(Request $request)
+    public function createMsg(Request $request)
     {
+        $json = Utils::getRequestJSONArray($request);
         // Чтение пользователя из запроса и проверка его наличия
         $userRequest = new User();
-        $userRequest->setLogin($request->request->get('login'));
-        $userRequest->setPassword($request->request->get('password'));
+//        $userRequest->setLogin($request->request->get('login'));
+        $userRequest->setLogin($json['login']);
+//        $userRequest->setPassword($request->request->get('password'));
+        $userRequest->setPassword($json['password']);
 //        $userDB = new User();
         $userDB = $this->getDoctrine()
             ->getRepository(User::class)
             ->findOneBy(['login' => $userRequest->getLogin(), 'password' => $userRequest->getPassword()]);
         if ($userRequest->getLogin() === $userDB->getLogin()
-            && $userRequest->getPassword() === $userDB->getPassword())
-        {
+            && $userRequest->getPassword() === $userDB->getPassword()) {
             // Чтение чата из запроса и проверка его наличия
 //            $chatRequest = new Chat();
 //            $chatRequest->setCode($request->request->get('login'));
@@ -53,11 +58,11 @@ class MessageController extends Controller
 //
             // Работа с БД
             $entityManager = $this->getDoctrine()->getManager();
-            // Запись нового чата БД
+            // Запись нового сообщения в БД
             $msg = new Message();
             $msg->setChatId($chatRequest->getId());
             $msg->setSenderUserId($userDB->getId());
-            $msg->setContent($request->request->get('content'));
+            $msg->setContent($json['content']);
             $entityManager->persist($msg);
             $entityManager->flush();
         }
@@ -69,5 +74,9 @@ class MessageController extends Controller
 //        $response->setContent(json_encode($user->expose()));
 //
 //        $response->send();
+
+
+        return new JsonResponse('Ok', Response::HTTP_OK);
+
     }
 }

@@ -5,6 +5,8 @@ namespace App\Controller;
 use App\Entity\User;
 use App\Entity\ChatUser;
 use App\Entity\Chat;
+use App\Helpers\ChatHelper;
+use App\Helpers\UserHelper;
 use App\Utils;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -12,7 +14,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 
-class ChatController extends Controller
+final class ChatController extends Controller
 {
 //    /**
 //     * @Route("/chat", name="chat")
@@ -23,6 +25,15 @@ class ChatController extends Controller
 //            'controller_name' => 'ChatController',
 //        ]);
 //    }
+
+    private $userHelper;
+    private $chatHelper;
+
+    public function __construct(UserHelper $userHelper, ChatHelper $chatHelper)
+    {
+        $this->userHelper = $userHelper;
+        $this->chatHelper = $chatHelper;
+    }
 
     /**
      * @Route(
@@ -81,10 +92,43 @@ class ChatController extends Controller
         return new JsonResponse(['Chat' => $chat->getCode()], Response::HTTP_OK);
     }
 
-//    public function addChatUser(Chat $chat, User $user)
-//    {
-//        if ($this->isChatExists($chat) && isUserExists)
-//    }
+
+    /**
+     * @Route(
+     *     "/chat/{chatId}/addUser/{userLogin}",
+     *     methods={"POST"}
+     * )
+     */
+    public function addChatUser($chatId, $userLogin)//Request $request)
+    {
+        $user = new User();
+//        $user->setLogin($this->userHelper->extractUser($request));
+        $user->setLogin($userLogin);
+        $chat = new Chat();
+//        $chat->setId($this->chatHelper->extractChat($request));
+        $chat->setId($chatId);
+        $this->addChatUserObj($chat, $user);
+        return new JsonResponse(['User added' => 'Ok'], Response::HTTP_OK);
+    }
+
+
+    public function addChatUserObj(Chat $chat, User $user)
+    {
+        if ($this->chatHelper->isChatExists($chat) && $this->userHelper->isUserExists($user))
+        {
+            // Работа с БД
+            $entityManager = $this->getDoctrine()->getManager();
+
+            $chatUser = new ChatUser();
+            // TODO: убрать
+            $user->setId(4);
+            // Добавление пользователя в чат
+            $chatUser->setChatId($chat->getId());
+            $chatUser->setUserId($user->getId());
+            $entityManager->persist($chatUser);
+            $entityManager->flush();
+        }
+    }
 
     /**
      * Проверка наличия данного чата в БД
@@ -94,21 +138,21 @@ class ChatController extends Controller
      * @param Chat $chat Объект с пользователем для проверки
      * @return bool Возвращает true если пользователь найден. false если нет или дан пустой объект
      */
-    public function isChatExists(Chat $chat): bool
-    {
-        if (null === $chat) {
-            return false;
-        }
-        $findArgs = [];
-        if (null !== $chat->getId()) {
-            $findArgs['id'] = $chat->getId();
-        }
-        else {
-            return false;
-        }
-//        $findArgs['login'] = $chat->getLogin();
-        $found = $this->getDoctrine()
-            ->getRepository(Chat::class)->findOneBy($findArgs);
-        return !($found === null);
-    }
+//    public function isChatExists(Chat $chat): bool
+//    {
+//        if (null === $chat) {
+//            return false;
+//        }
+//        $findArgs = [];
+//        if (null !== $chat->getId()) {
+//            $findArgs['id'] = $chat->getId();
+//        }
+//        else {
+//            return false;
+//        }
+////        $findArgs['login'] = $chat->getLogin();
+//        $found = $this->getDoctrine()
+//            ->getRepository(Chat::class)->findOneBy($findArgs);
+//        return !($found === null);
+//    }
 }

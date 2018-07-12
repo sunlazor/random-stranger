@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Helpers\UserHelper;
 use Exception;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -14,6 +15,13 @@ use App\Utils;
 
 class UserController extends Controller
 {
+
+    private $userHelper;
+
+    public function __construct(UserHelper $userHelper)
+    {
+        $this->userHelper = $userHelper;
+    }
 //    /**
 //     * @Route("/me", name="user_about")
 //     */
@@ -39,10 +47,7 @@ class UserController extends Controller
      */
     public function addUser(Request $request, ValidatorInterface $validator): Response
     {
-        // Чтение JSON из запроса
-        $json = Utils::getRequestJSONArray($request);
-        // Создание и заполнение данными нового пользователя
-        $login = htmlspecialchars($json['login']);
+        $login = $this->userHelper->extractUser($request);
         $user = new User();
         $user->setLogin($login);
         $user->setPassword(random_int(1000, 9999));
@@ -66,25 +71,25 @@ class UserController extends Controller
         return $response;
     }
 
-    /**
-     * Проверка наличия данного пользователя в БД
-     * Проверка идет только по login и id (если есть)
-     *
-     * @param User $user Объект с пользователем для проверки
-     * @return bool Возвращает true если пользователь найден. false если нет или дан пустой объект
-     */
-    public function isUserExists(User $user): bool
-    {
-        if (null === $user) {
-            return false;
-        }
-        $findArgs = [];
-        if (null !== $user->getId()) {
-            $findArgs['id'] = $user->getId();
-        }
-        $findArgs['login'] = $user->getLogin();
-        $found = $this->getDoctrine()
-            ->getRepository(User::class)->findOneBy($findArgs);
-        return !($found === null);
-    }
+//    /**
+//     * Проверка наличия данного пользователя в БД
+//     * Проверка идет только по login и id (если есть)
+//     *
+//     * @param User $user Объект с пользователем для проверки
+//     * @return bool Возвращает true если пользователь найден. false если нет или дан пустой объект
+//     */
+//    public function isUserExists(User $user): bool
+//    {
+//        if (null === $user) {
+//            return false;
+//        }
+//        $findArgs = [];
+//        if (null !== $user->getId()) {
+//            $findArgs['id'] = $user->getId();
+//        }
+//        $findArgs['login'] = $user->getLogin();
+//        $found = $this->getDoctrine()
+//            ->getRepository(User::class)->findOneBy($findArgs);
+//        return !($found === null);
+//    }
 }

@@ -37,6 +37,14 @@ class Chat
         return $this->code;
     }
 
+    // TODO: Убить эту функцию
+    public function setId(int $id): self
+    {
+        $this->id = $id;
+
+        return $this;
+    }
+
     private function setCode(string $code): self
     {
         $this->code = $code;
