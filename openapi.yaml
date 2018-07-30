@@ -1,0 +1,89 @@
+openapi: 3.0.0
+
+info:
+  title: "Random stranger chat"
+  description: "Это простенькая реализация чата."
+  version: "0.2.0"
+  
+servers:
+  - url: http://localhost:8080/
+    description: Локальный сервер для тестирования
+  
+paths:
+  /test:
+    get: 
+      tags:
+        - test
+      summary: Тестовый запрос для проверки swagger
+      responses:
+        '200':
+          description: Возвращает 'OK' и хватит
+      
+  /users/signup:
+    post:
+      tags:
+        - user
+      summary: Создает нового пользователя
+      description: Создание нового пользователя с уникальным именем
+      requestBody:
+        description: JSON с указанием нового логина и пароля
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LogPass'
+            
+      responses:
+        '200':
+          description: Новый пользователь успешно создан
+          content:
+            application/json:
+              schema: 
+                type: object
+                properties: 
+                  success:
+                    type: string
+                    description: Описание результата
+                    
+        '409':
+          description: Такое имя уже существует
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BasicError'
+                  
+        '422':
+          description: Некорректное имя пользователя
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BasicError'
+                
+                  
+components:
+  schemas:
+    LogPass:
+      description: Тело содержащее Логин и пароль
+      type: object
+      required:
+      - login
+      - password
+      properties:
+        login:
+          type: string
+        password:
+          type: string
+          
+    BasicError:
+      description: Базовый JSON с ошибкой
+      type: object
+      properties:
+        error:
+          type: string
+          description: Тип ошибки
+        notice:
+          type: string
+          description: Рекомендация по исправлению
+        recieved:
+          type: string
+          description: Полученные данные

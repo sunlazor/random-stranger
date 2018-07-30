@@ -9,9 +9,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
-use App\Entity\User;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
-use App\Utils;
 
 class UserController extends Controller
 {
@@ -22,6 +20,7 @@ class UserController extends Controller
     {
         $this->userHelper = $userHelper;
     }
+
 //    /**
 //     * @Route("/me", name="user_about")
 //     */
@@ -33,30 +32,45 @@ class UserController extends Controller
 //    }
 
     /**
-     * @param Request $request Объект запроса
+     * Создание нового пользователя для общения в чате
      *
+     * @param Request $request Объект запроса
      * @param ValidatorInterface $validator Валидатор классов
      * @return Response Возвращает JSON с объектом
      * @throws Exception Исключение от random_int в случае нехватки энтропии
      * @Route(
-     *     "/user/add",
+     *     "/users/signup",
      *     methods={"POST"},
-     *     name="user_add"
+     *     name="user_signup"
      * )
      *
      */
-    public function addUser(Request $request, ValidatorInterface $validator): Response
+    public function userSignUp(Request $request, ValidatorInterface $validator): Response
     {
-        $login = $this->userHelper->extractUser($request);
-        $user = new User();
-        $user->setLogin($login);
+        $user = $this->userHelper->extractUser($request);
+        // TODO: реализовать пользовательские пароли
+        // Временно для простоты
         $user->setPassword(random_int(1000, 9999));
         // Проверка валидности логина
         $errors = $validator->validate($user);
+        // Валидация логина
         if (\count($errors) > 0) {
-            $errorsMsg = ['Validation error:' => (string) $errors];
+            $msg = [
+                'Error' => 'Validation failed',
+                'Notice' => 'a-zA-Z0-9-_ are allowed, but you can\'t start your login with -_',
+                'Received' => $user->getLogin()];
             // Ответ клиенту
-            $response = new JsonResponse($errorsMsg, Response::HTTP_UNPROCESSABLE_ENTITY);
+            $response = new JsonResponse($msg, Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+        // Проверка наличия пользователя
+        else if ($this->userHelper->isUserExists($user))
+        {
+            $msg = [
+                'Error' => 'User exists',
+                'Notice' => 'Choose a different login',
+                'Received' => $user->getLogin()];
+            // Ответ клиенту
+            $response = new JsonResponse($msg, Response::HTTP_CONFLICT);
         }
         else
         {
@@ -65,31 +79,11 @@ class UserController extends Controller
             $entityManager->persist($user);
             $entityManager->flush();
             // Ответ клиенту
-            $response = new JsonResponse($user->expose(), Response::HTTP_OK);
+            $msg = [
+                'Success' => 'User created'];
+            $response = new JsonResponse($msg, Response::HTTP_OK);
         }
 
         return $response;
     }
-
-//    /**
-//     * Проверка наличия данного пользователя в БД
-//     * Проверка идет только по login и id (если есть)
-//     *
-//     * @param User $user Объект с пользователем для проверки
-//     * @return bool Возвращает true если пользователь найден. false если нет или дан пустой объект
-//     */
-//    public function isUserExists(User $user): bool
-//    {
-//        if (null === $user) {
-//            return false;
-//        }
-//        $findArgs = [];
-//        if (null !== $user->getId()) {
-//            $findArgs['id'] = $user->getId();
-//        }
-//        $findArgs['login'] = $user->getLogin();
-//        $found = $this->getDoctrine()
-//            ->getRepository(User::class)->findOneBy($findArgs);
-//        return !($found === null);
-//    }
 }
